@@ -83,7 +83,6 @@ use Sambal;
     is $text.children[4].text, " ", 'correct 5/7 tspan';
     is $text.children[5].text, "and", 'correct 6/7 tspan';
     is $text.children[6].text, " combine them.", 'correct 7/7 tspan';
-    is $text.children[7].font-style, "", 'correct 1/7 font-style';
     is $text.children[0].font-style, "", 'correct 1/7 font-style';
     is $text.children[1].font-style, "italics", 'correct 2/7 font-style';
     is $text.children[2].font-style, "", 'correct 3/7 font-style';
