@@ -15,7 +15,8 @@ class Slide {
 my @slide_queue;
 
 sub text(Cool $text) is export {
-    push @slide_queue, Slide.new(Text.new(:$text));
+    my @paragraphs = map { Text.new(:text($_)) }, $text.split(/\n\n+/);
+    push @slide_queue, Slide.new(@paragraphs);
 }
 
 our sub slides {
