@@ -20,23 +20,37 @@ grammar Markdown {
     token paragraph {
         [<!before \n\n> .]+
         {
-            my $text = ~$/;
-            my @children = TSpan.new(:$text);
-            my $saved-match = $/;
-            while @children[*-1].text ~~ /'**' <?before \S> (.+?<[*_]>*) <?after \S> '**'/ {
-                my $old_tspan = pop @children;
-                push @children, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
-                push @children, TSpan.new(:text(~$0), :font-weight('bold'));
-                push @children, TSpan.new(:text($old_tspan.text.substr($/.to)));
+            sub bold_match($text) {
+                my @tspans = TSpan.new(:$text);
+                while @tspans[*-1].text ~~ /'**' <?before \S> (.+?<[*_]>*) <?after \S> '**'/ {
+                    my $old_tspan = pop @tspans;
+                    push @tspans, italics_match($old_tspan.text.substr(0, $/.from));
+                    push @tspans, TSpan.new(:text(~$0), :font-weight('bold'));
+                    push @tspans, italics_match($old_tspan.text.substr($/.to));
+                }
+                if @tspans == 1 {
+                    return italics_match(@tspans[*-1].text);
+                }
+                else {
+                    return @tspans;
+                }
             }
 
-            while @children[*-1].text ~~ /'*' <?before \S> (.+?<[*_]>*) <?after \S> '*'/ {
-                my $old_tspan = pop @children;
-                push @children, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
-                push @children, TSpan.new(:text(~$0), :font-style('italics'));
-                push @children, TSpan.new(:text($old_tspan.text.substr($/.to)));
+            sub italics_match($text) {
+                my @tspans = TSpan.new(:$text);
+                while @tspans[*-1].text ~~ /'*' <?before \S> (.+?<[*_]>*) <?after \S> '*'/ {
+                    my $old_tspan = pop @tspans;
+                    push @tspans, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
+                    push @tspans, TSpan.new(:text(~$0), :font-style('italics'));
+                    push @tspans, TSpan.new(:text($old_tspan.text.substr($/.to)));
+                }
+                return @tspans;
             }
-			$/ = $saved-match;
+
+            my $text = ~$/;
+
+            my @children = bold_match($text);
+
             make Text.new(:$text, :@children);
         }
     }

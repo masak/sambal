@@ -59,6 +59,15 @@ use Sambal;
 }
 
 {
+    text "Both *beer* and **cheesecake**!?";
+
+    my @slides = Sambal::slides();
+    my $text = @slides[0].children[0];
+    is +$text.children, 5, "handles italic and bold combined";
+    Sambal::_reset();
+}
+
+{
     text "Now we use both *italics* and **bold** ***and*** combine them.";
 
     my @slides = Sambal::slides();
