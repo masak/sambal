@@ -26,19 +26,16 @@ grammar Markdown {
                     my $old_tspan = pop @tspans;
                     push @tspans, italics_match($old_tspan.text.substr(0, $/.from));
                     push @tspans, TSpan.new(:text(~$0), :font-weight('bold'));
-                    push @tspans, italics_match($old_tspan.text.substr($/.to));
+                    push @tspans, TSpan.new(:text($old_tspan.text.substr($/.to)));
                 }
-                if @tspans == 1 {
-                    return italics_match(@tspans[*-1].text);
-                }
-                else {
-                    return @tspans;
-                }
+                my $last_tspan = pop @tspans;
+                push @tspans, italics_match($last_tspan.text);
+                return @tspans;
             }
 
             sub italics_match($text) {
                 my @tspans = TSpan.new(:$text);
-                while @tspans[*-1].text ~~ /'*' <?before \S> (.+?<[*_]>*) <?after \S> '*'/ {
+                while @tspans[*-1].text ~~ /'*' <?before \S> (.+?) <?after \S> '*'/ {
                     my $old_tspan = pop @tspans;
                     push @tspans, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
                     push @tspans, TSpan.new(:text(~$0), :font-style('italics'));
