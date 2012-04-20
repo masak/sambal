@@ -31,12 +31,12 @@ use Sambal;
     my $text = @slides[0].children[0];
     isa_ok $text, Sambal::Text;
     is +$text.children, 3, "The text has three elements";
-    is $text.children[0].text, "One slide with ";
-    is $text.children[1].text, "italics";
-    is $text.children[2].text, " in it.";
-    is $text.children[0].font-style, "";
-    is $text.children[1].font-style, "italics";
-    is $text.children[2].font-style, "";
+    is $text.children[0].text, "One slide with ", 'correct 1/3 tspan';
+    is $text.children[1].text, "italics", 'correct 2/3 tspan';
+    is $text.children[2].text, " in it.", 'correct 3/3 tspan';
+    is $text.children[0].font-style, "", 'correct 1/3 font-style';
+    is $text.children[1].font-style, "italics", 'correct 2/3 font-style';
+    is $text.children[2].font-style, "", 'correct 3/3 font-style';
     Sambal::_reset();
 }
 
