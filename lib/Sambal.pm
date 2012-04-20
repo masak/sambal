@@ -20,3 +20,7 @@ sub text(Cool $text) is export {
 our sub slides {
     @slide_queue;
 }
+
+our sub _reset {
+    @slide_queue = ();
+}
