@@ -9,6 +9,7 @@ use Sambal;
     is +@slides, 1, "Create one text slide";
     isa_ok @slides[0], Sambal::Slide;
     is +@slides[0].children, 1, "The slide has one element";
+    ok (@slides[0].children)[0].text eq "One slide", "It is the right text.";
     Sambal::_reset();
 }
 
