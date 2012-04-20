@@ -40,4 +40,22 @@ use Sambal;
     Sambal::_reset();
 }
 
+{
+    text "One slide with **bold** in it.";
+
+    my @slides = Sambal::slides();
+    is +@slides, 1, "Create one text slide";
+    is +@slides[0].children, 1, "The slide has one child";
+    my $text = @slides[0].children[0];
+    isa_ok $text, Sambal::Text;
+    is +$text.children, 3, "The text has three elements";
+    is $text.children[0].text, "One slide with ", 'correct 1/3 tspan';
+    is $text.children[1].text, "bold", 'correct 2/3 tspan';
+    is $text.children[2].text, " in it.", 'correct 3/3 tspan';
+    is $text.children[0].font-weight, "", 'correct 1/3 font-style';
+    is $text.children[1].font-weight, "bold", 'correct 2/3 font-style';
+    is $text.children[2].font-weight, "", 'correct 3/3 font-style';
+    Sambal::_reset();
+}
+
 done;

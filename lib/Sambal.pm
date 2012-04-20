@@ -8,6 +8,7 @@ class Text {
 class TSpan {
     has $.text;
     has $.font-style = '';
+	has $.font-weight = '';
 }
 
 grammar Markdown {
@@ -22,13 +23,20 @@ grammar Markdown {
             my $text = ~$/;
             my @children = TSpan.new(:$text);
             my $saved-match = $/;
+            while @children[*-1].text ~~ /'**' <?before \S> (.+?<[*_]>*) <?after \S> '**'/ {
+                my $old_tspan = pop @children;
+                push @children, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
+                push @children, TSpan.new(:text(~$0), :font-weight('bold'));
+                push @children, TSpan.new(:text($old_tspan.text.substr($/.to)));
+            }
+
             while @children[*-1].text ~~ /'*' <?before \S> (.+?<[*_]>*) <?after \S> '*'/ {
                 my $old_tspan = pop @children;
                 push @children, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
                 push @children, TSpan.new(:text(~$0), :font-style('italics'));
                 push @children, TSpan.new(:text($old_tspan.text.substr($/.to)));
             }
-            $/ = $saved-match;
+			$/ = $saved-match;
             make Text.new(:$text, :@children);
         }
     }
