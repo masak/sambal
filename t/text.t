@@ -52,9 +52,43 @@ use Sambal;
     is $text.children[0].text, "One slide with ", 'correct 1/3 tspan';
     is $text.children[1].text, "bold", 'correct 2/3 tspan';
     is $text.children[2].text, " in it.", 'correct 3/3 tspan';
-    is $text.children[0].font-weight, "", 'correct 1/3 font-style';
-    is $text.children[1].font-weight, "bold", 'correct 2/3 font-style';
-    is $text.children[2].font-weight, "", 'correct 3/3 font-style';
+    is $text.children[0].font-weight, "", 'correct 1/3 font-weight';
+    is $text.children[1].font-weight, "bold", 'correct 2/3 font-weight';
+    is $text.children[2].font-weight, "", 'correct 3/3 font-weight';
+    Sambal::_reset();
+}
+
+{
+    text "Now we use both *italics* and **bold** ***and*** combine them.";
+
+    my @slides = Sambal::slides();
+    is +@slides, 1, "Create one text slide";
+    is +@slides[0].children, 1, "The slide has one child";
+    my $text = @slides[0].children[0];
+    isa_ok $text, Sambal::Text;
+    is +$text.children, 7, "The text has seven elements";
+    is $text.children[0].text, "Now we use both ", 'correct 1/7 tspan';
+    is $text.children[1].text, "italics", 'correct 2/7 tspan';
+    is $text.children[2].text, " and ", 'correct 3/7 tspan';
+    is $text.children[3].text, "bold", 'correct 4/7 tspan';
+    is $text.children[4].text, " ", 'correct 5/7 tspan';
+    is $text.children[5].text, "and", 'correct 6/7 tspan';
+    is $text.children[6].text, " combine them.", 'correct 7/7 tspan';
+    is $text.children[7].font-style, "", 'correct 1/7 font-style';
+    is $text.children[0].font-style, "", 'correct 1/7 font-style';
+    is $text.children[1].font-style, "italics", 'correct 2/7 font-style';
+    is $text.children[2].font-style, "", 'correct 3/7 font-style';
+    is $text.children[3].font-style, "", 'correct 4/7 font-style';
+    is $text.children[4].font-style, "", 'correct 5/7 font-style';
+    is $text.children[5].font-style, "italics", 'correct 6/7 font-style';
+    is $text.children[6].font-style, "", 'correct 7/7 font-style';
+    is $text.children[0].font-weight, "", 'correct 1/7 font-weight';
+    is $text.children[1].font-weight, "", 'correct 2/7 font-weight';
+    is $text.children[2].font-weight, "", 'correct 3/7 font-weight';
+    is $text.children[3].font-weight, "bold", 'correct 4/7 font-weight';
+    is $text.children[4].font-weight, "", 'correct 5/7 font-weight';
+    is $text.children[5].font-weight, "bold", 'correct 6/7 font-weight';
+    is $text.children[6].font-weight, "", 'correct 7/7 font-weight';
     Sambal::_reset();
 }
 
