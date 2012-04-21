@@ -62,7 +62,7 @@ module Serializer {
         my $style = join '; ',
             (qq[font-style: {.font-style}]   if .font-style),
             (qq[font-weight: {.font-weight}] if .font-weight),
-            (qq[font-family: {.font-family}] if .font-family);
+            (qq[font-family: Andale Mono] if .font-family eq 'monospace');
         return
             q[<tspan],
             (qq[ style="$style"] if $style),
