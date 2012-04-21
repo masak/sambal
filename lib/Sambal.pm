@@ -11,6 +11,34 @@ class TSpan {
 	has $.font-weight = '';
 }
 
+sub _DoItalicsAndBold($text is copy) {
+    # <strong> must go first:
+    $text ~~ s:g[ ('**'||'__') <?before \S> (.+?<[*_]>*) <?after \S> $0 ]
+        = "<strong>{$1}</strong>";
+
+    $text ~~ s:g[ ('*'||'_') <?before \S> (.+?) <?after \S> $0 ]
+        = "<em>{$1}</em>";
+
+    return $text;
+}
+
+sub extract_tspans($text) {
+    # XXX the below regex wouldn't work for e.g. <b><em><b>foo</b></em></b>
+    gather for $text.split(/'<'(\w+)'>'.*?'</'$0'>'/, :all) -> $normal, $taggy? {
+        take TSpan.new(:text($normal));
+        if $taggy {
+            # XXX highly specialized but works for our immediate purposes
+            $taggy.Str ~~ /^ ['<'(\w+)'>']+ (.*?) ['</'\w+'>']+ $/;
+            my @tags = $0».Str;
+            my $contents = $1;
+            my %attrs;
+            if any(@tags) eq 'em' { %attrs<font-style> = 'italics' }
+            if any(@tags) eq 'strong' { %attrs<font-weight> = 'bold' }
+            take TSpan.new(:text($contents), |%attrs);
+        }
+    }
+}
+
 grammar Markdown {
     token TOP {
         ^ <paragraph>* % [\n\n+] $
@@ -20,41 +48,10 @@ grammar Markdown {
     token paragraph {
         [<!before \n\n> .]+
         {
-            sub bold_match($text) {
-                my @tspans = TSpan.new(:$text);
-                while @tspans[*-1].text ~~ /'**' <?before \S> (.+?<[*_]>*) <?after \S> '**'/ {
-                    my $old_tspan = pop @tspans;
-                    my $text = ~$0;
-                    my ($from, $to) = $/.from, $/.to;
-                    push @tspans, italics_match($old_tspan.text.substr(0, $from));
-                    if $text ~~ /^ '*' (.+) '*' $/ {
-                        $text = ~$0;
-                        push @tspans, TSpan.new(:$text, :font-style<italics>, :font-weight<bold>);
-                    }
-                    else {
-                        push @tspans, TSpan.new(:$text, :font-weight<bold>);
-                    }
-                    push @tspans, TSpan.new(:text($old_tspan.text.substr($to)));
-                }
-                my $last_tspan = pop @tspans;
-                push @tspans, italics_match($last_tspan.text);
-                return @tspans;
-            }
-
-            sub italics_match($text) {
-                my @tspans = TSpan.new(:$text);
-                while @tspans[*-1].text ~~ /'*' <?before \S> (.+?) <?after \S> '*'/ {
-                    my $old_tspan = pop @tspans;
-                    push @tspans, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
-                    push @tspans, TSpan.new(:text(~$0), :font-style<italics>);
-                    push @tspans, TSpan.new(:text($old_tspan.text.substr($/.to)));
-                }
-                return @tspans;
-            }
-
             my $text = ~$/;
+            $text = _DoItalicsAndBold($text);
 
-            my @children = bold_match($text);
+            my @children = extract_tspans($text);
 
             make Text.new(:$text, :@children);
         }
