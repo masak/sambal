@@ -56,13 +56,20 @@ module Serializer {
     multi svg(Text::Markdown::Para $para) {
         q[<text xml:space="preserve" x="0" y="0">],
         (map { svg($_) }, $para.children),
-        qq[</text>\n],
+        qq[</text>\n];
     }
 
-    multi svg(Text::Markdown::TSpan $span) {
-        q[<tspan x="0" y="0">],
-        $span.text,
-        qq[</tspan>\n],
+    multi svg(Text::Markdown::TSpan $_) {
+        my $style = join '; ',
+            (qq[font-style: {.font-style}]   if .font-style),
+            (qq[font-weight: {.font-weight}] if .font-weight),
+            (qq[font-family: {.font-family}] if .font-family);
+        return
+            q[<tspan],
+            (qq[ style="$style"] if $style),
+            q[>],
+            .text,
+            qq[</tspan>\n];
     }
 }
 
