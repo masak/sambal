@@ -100,4 +100,19 @@ use Sambal;
     Sambal::_reset();
 }
 
+{
+	text "This text contains `code` written in Perl 6.";
+	my @slides = Sambal::slides();
+    is +@slides, 1, "Create one text slide";
+    is +@slides[0].children, 1, "The slide has one child";
+    my $text = @slides[0].children[0];
+	isa_ok $text, Sambal::Text;
+	is +$text.children, 3, "The text has 3 elements.";
+	is $text.children[0].text, "This text contains ", 'correct 1/3 tspan';
+	is $text.children[1].text, "code", 'correct 2/3 tspan';
+	is $text.children[2].text, " written in Perl 6.", 'correct 3/3 tspan';
+	is $text.children[0].font-family, '', 'correct 1/3 font-family';
+	is $text.children[1].font-family, 'monospace', 'correct 2/3 font-family';
+	is $text.children[2].font-family, '', 'correct 3/3 font-family';
+}
 done;
