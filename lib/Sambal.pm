@@ -59,7 +59,8 @@ module Serializer {
 
     multi svg(Text::Markdown::Para $para) {
         my $y = 300 - 50 * ($*num_paras - 1) + 100 * $*para_index++;
-        qq[<text xml:space="preserve" x="400" y="$y" style="font-size:40px">],
+        my $style = 'font-size:40px;text-anchor:middle';
+        qq[<text xml:space="preserve" x="400" y="$y" style="$style">],
         (map { svg($_) }, $para.children),
         qq[</text>\n];
     }
