@@ -45,8 +45,24 @@ module Serializer {
         $fh.close;
     }
 
-    sub svg(Slide $slide) {
-        return SVG_HEADER ~ SVG_FOOTER;
+    multi svg(Any $o) { die "Internal error: got a $o.^name()" }
+
+    multi svg(Slide $slide) {
+        SVG_HEADER,
+        (map { svg($_) }, $slide.children),
+        SVG_FOOTER;
+    }
+
+    multi svg(Text::Markdown::Para $para) {
+        q[<text xml:space="preserve" x="0" y="0">],
+        (map { svg($_) }, $para.children),
+        qq[</text>\n],
+    }
+
+    multi svg(Text::Markdown::TSpan $span) {
+        q[<tspan x="0" y="0">],
+        $span.text,
+        qq[</tspan>\n],
     }
 }
 
