@@ -47,13 +47,19 @@ module Serializer {
     multi svg(Any $o) { die "Internal error: got a $o.^name()" }
 
     multi svg(Slide $slide) {
-        SVG_HEADER,
-        (map { svg($_) }, $slide.children),
-        SVG_FOOTER;
+        my $*num_paras = +$slide.children;
+        my $*para_index = 0;
+        # The 'eager' is needed in order to evaluate the `map` in
+        # the dynamic scope of the above variables.
+        eager
+            SVG_HEADER,
+            (map { svg($_) }, $slide.children),
+            SVG_FOOTER;
     }
 
     multi svg(Text::Markdown::Para $para) {
-        q[<text xml:space="preserve" x="400" y="300">],
+        my $y = 300 - 50 * ($*num_paras - 1) + 100 * $*para_index++;
+        qq[<text xml:space="preserve" x="400" y="$y" style="font-size:40px">],
         (map { svg($_) }, $para.children),
         qq[</text>\n];
     }
@@ -62,7 +68,7 @@ module Serializer {
         my $style = join '; ',
             (qq[font-style: {.font-style}]   if .font-style),
             (qq[font-weight: {.font-weight}] if .font-weight),
-            (qq[font-family: Andale Mono] if .font-family eq 'monospace');
+            (qq[font-family: Andale Mono]    if .font-family eq 'monospace');
         return
             q[<tspan],
             (qq[ style="$style"] if $style),
