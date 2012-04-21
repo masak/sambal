@@ -24,9 +24,17 @@ grammar Markdown {
                 my @tspans = TSpan.new(:$text);
                 while @tspans[*-1].text ~~ /'**' <?before \S> (.+?<[*_]>*) <?after \S> '**'/ {
                     my $old_tspan = pop @tspans;
-                    push @tspans, italics_match($old_tspan.text.substr(0, $/.from));
-                    push @tspans, TSpan.new(:text(~$0), :font-weight('bold'));
-                    push @tspans, TSpan.new(:text($old_tspan.text.substr($/.to)));
+                    my $text = ~$0;
+                    my ($from, $to) = $/.from, $/.to;
+                    push @tspans, italics_match($old_tspan.text.substr(0, $from));
+                    if $text ~~ /^ '*' (.+) '*' $/ {
+                        $text = ~$0;
+                        push @tspans, TSpan.new(:$text, :font-style<italics>, :font-weight<bold>);
+                    }
+                    else {
+                        push @tspans, TSpan.new(:$text, :font-weight<bold>);
+                    }
+                    push @tspans, TSpan.new(:text($old_tspan.text.substr($to)));
                 }
                 my $last_tspan = pop @tspans;
                 push @tspans, italics_match($last_tspan.text);
@@ -38,7 +46,7 @@ grammar Markdown {
                 while @tspans[*-1].text ~~ /'*' <?before \S> (.+?) <?after \S> '*'/ {
                     my $old_tspan = pop @tspans;
                     push @tspans, TSpan.new(:text($old_tspan.text.substr(0, $/.from)));
-                    push @tspans, TSpan.new(:text(~$0), :font-style('italics'));
+                    push @tspans, TSpan.new(:text(~$0), :font-style<italics>);
                     push @tspans, TSpan.new(:text($old_tspan.text.substr($/.to)));
                 }
                 return @tspans;
