@@ -4,18 +4,20 @@ use Text::Markdown;
 
 class Slide {
     has @.children;
+}
 
-    method new(*@nodes) {
-        self.bless(*, :children(@nodes));
-    }
+class Slide::Transition is Slide {
+    has $.previous;
+    has $.next;
+    has $.progress;
 }
 
 my @slide_queue;
 
 sub text(Cool $text) is export {
     my $doc = parse-markdown($text);
-    my @paragraphs = $doc.children;
-    push @slide_queue, Slide.new(@paragraphs);
+    my @children = $doc.children;
+    push @slide_queue, Slide.new(:@children);
 }
 
 sub slide(&block) is export {
@@ -25,9 +27,15 @@ sub slide(&block) is export {
     &block();
     my @children;
     for @slide_queue[$prior_length .. *-1] -> $slide {
+        die "Can't have transitions inside slide"
+            if $slide ~~ Slide::Transition;
         push @children, $slide.children[];
     }
-    @slide_queue = @slide_queue[^$prior_length], Slide.new(@children);
+    @slide_queue = @slide_queue[^$prior_length], Slide.new(:@children);
+}
+
+sub transition is export {
+    push @slide_queue, Slide::Transition.new();
 }
 
 our sub slides {
@@ -36,6 +44,27 @@ our sub slides {
 
 our sub _reset {
     @slide_queue = ();
+}
+
+our $TRANSITION_STEPS = 9;
+
+our sub _expand_transition_slides {
+    my @new_queue;
+    for @slide_queue.kv -> $i, $_ {
+        when Slide::Transition {
+            my $previous = @slide_queue[$i - 1];
+            my $next     = @slide_queue[$i + 1];
+            for ^$TRANSITION_STEPS {
+                sub smooth($x) { (1 - cos(pi * $x))/2 }
+                my $progress = ($_ + 1) / ($TRANSITION_STEPS + 1);
+                $progress = smooth(smooth($progress));
+                push @new_queue,
+                     Slide::Transition.new(:$previous, :$next, :$progress);
+            }
+        }
+        default { push @new_queue, $_ }
+    }
+    @slide_queue := @new_queue;
 }
 
 constant SVG_HEADER = q[<?xml version="1.0" encoding="UTF-8"?>
@@ -59,14 +88,26 @@ module Serializer {
     multi svg(Any $o) { die "Internal error: got a $o.^name()" }
 
     multi svg(Slide $slide) {
+        SVG_HEADER,
+        slide_svg($slide),
+        SVG_FOOTER;
+    }
+
+    sub slide_svg(Slide $slide) {
         my $*num_paras = +$slide.children;
         my $*para_index = 0;
         # The 'eager' is needed in order to evaluate the `map` in
         # the dynamic scope of the above variables.
-        eager
-            SVG_HEADER,
-            (map { svg($_) }, $slide.children),
-            SVG_FOOTER;
+        eager map { svg($_) }, $slide.children;
+    }
+
+    multi svg(Slide::Transition $trans) {
+        my $prev_offset = -800 * $trans.progress;
+        my $next_offset = 800 * (1 - $trans.progress);
+        SVG_HEADER,
+        qq[<g transform="translate($prev_offset, 0)">], slide_svg($trans.previous), '</g>',
+        qq[<g transform="translate($next_offset, 0)">], slide_svg($trans.next), '</g>',
+        SVG_FOOTER
     }
 
     multi svg(Text::Markdown::Para $para) {
@@ -131,6 +172,7 @@ sub generate_final_pdf {
 }
 
 END {
+    _expand_transition_slides();
     if $PDF_GEN {
         generate_final_pdf();
     }
