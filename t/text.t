@@ -2,6 +2,8 @@ use v6;
 use Test;
 use Sambal;
 
+$Sambal::PDF_GEN = False;
+
 {
     text "One slide";
 

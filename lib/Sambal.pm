@@ -35,10 +35,9 @@ constant SVG_HEADER = q[<?xml version="1.0" encoding="UTF-8"?>
 ];
 
 constant SVG_FOOTER = "</svg>\n";
+our $GEN_DIR = '.sambal-gen';
 
 module Serializer {
-    our $GEN_DIR = '.sambal-gen';
-
     our sub write_svg_file($name, Slide $slide) {
         my $fh = open "$GEN_DIR/$name", :w;
         $fh.print(svg($slide));
@@ -54,7 +53,7 @@ module Serializer {
     }
 
     multi svg(Text::Markdown::Para $para) {
-        q[<text xml:space="preserve" x="0" y="0">],
+        q[<text xml:space="preserve" x="400" y="300">],
         (map { svg($_) }, $para.children),
         qq[</text>\n];
     }
@@ -73,20 +72,47 @@ module Serializer {
     }
 }
 
-our $PROCESS = True;
+our $PDF_GEN = True;
+my $inkscape_executable;
+my $pdfjoin_executable;
+
+sub sambal_to_svgs {
+    shell "rm -rf $GEN_DIR";
+    mkdir $GEN_DIR;
+    do for @slide_queue.kv -> $num, $slide {
+        Serializer::write_svg_file("slide{$num.fmt('%04d')}.svg", $slide);
+    } or die "No slides to process. Done.";
+}
+
+sub svgs_to_pdfs {
+    for @slide_queue.kv -> $num, $slide {
+        my $arguments = join ' ',
+            '--without-gui',
+            "--file=$GEN_DIR/slide{$num.fmt('%04d')}.svg",
+            "--export-pdf=$GEN_DIR/slide{$num.fmt('%04d')}.pdf",
+            '2> /dev/null';     # not really an argument, but works :)
+        shell "$inkscape_executable $arguments";
+    }
+}
+
+sub pdfs_to_final_pdf {
+    shell "pdfjoin -q -o talk.pdf $GEN_DIR/*.pdf";
+}
+
+sub generate_final_pdf {
+    $inkscape_executable = qx[which inkscape].chomp;
+    $pdfjoin_executable  = qx[which pdfjoin].chomp;
+    die "`inkscape` not found in path"
+        unless $inkscape_executable;
+    die "`pdfjoin` not found in path"
+        unless $inkscape_executable;
+    sambal_to_svgs();
+    svgs_to_pdfs();
+    pdfs_to_final_pdf();
+}
 
 END {
-    if $PROCESS {
-        try {
-            mkdir $Serializer::GEN_DIR;
-            CATCH {
-                when X::IO::Mkdir && .os-error ~~ /:i 'file exists'/ {
-                    # ignore this, we want the directory there
-                }
-            }
-        }
-        do for @slide_queue.kv -> $num, $slide {
-            Serializer::write_svg_file("slide{$num.fmt('%04d')}.svg", $slide);
-        } or say "No slides to process. Done.";
+    if $PDF_GEN {
+        generate_final_pdf();
     }
 }
