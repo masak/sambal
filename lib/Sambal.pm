@@ -68,7 +68,7 @@ module Serializer {
             (qq[ style="$style"] if $style),
             q[>],
             .text,
-            qq[</tspan>\n];
+            qq[</tspan>];
     }
 }
 
