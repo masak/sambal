@@ -101,8 +101,8 @@ use Sambal;
 }
 
 {
-	text "This text contains `code` written in Perl 6.";
-	my @slides = Sambal::slides();
+    text "This text contains `code` written in Perl 6.";
+    my @slides = Sambal::slides();
     is +@slides, 1, "Create one text slide";
     is +@slides[0].children, 1, "The slide has one child";
     my $text = @slides[0].children[0];
