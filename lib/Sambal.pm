@@ -18,6 +18,18 @@ sub text(Cool $text) is export {
     push @slide_queue, Slide.new(@paragraphs);
 }
 
+sub slide(&block) is export {
+    my $prior_length = +@slide_queue;
+    die "Can't pass a block that requires parameters to &slide"
+        unless &block.arity == 0;
+    &block();
+    my @children;
+    for @slide_queue[$prior_length .. *-1] -> $slide {
+        push @children, $slide.children[];
+    }
+    @slide_queue = @slide_queue[^$prior_length], Slide.new(@children);
+}
+
 our sub slides {
     @slide_queue;
 }
