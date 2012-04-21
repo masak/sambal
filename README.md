@@ -10,18 +10,27 @@ Sambal is a small presentation frame work with high ideals.
     
     text 'Have a spicy day!';
 
+## External dependencies
+
+This module works standalone, but it won't generate a PDF for you until
+you have the following external programs installed:
+
+* [Inscape](http://inkscape.org/)
+* [pdfjoin](http://freecode.com/projects/pdfjam)
+
+You might be able to find either or both of these through your local
+package manager. For example,
+
+    $ sudo apt-get install inkscape pdfjam
+
+will install both on Debian/Ubuntu.
+
 ## Roadmaps
 
 Short term (Oslo hackathon) roadmap:
 
 * A bit more of Markdown working
-    * inline code
     * block-level code
-* source → SVG → PDF
-    * serializing to SVG
-    * calling Inkscape to generate PDFs
-    * calling, um, `pdfjoin` to generate one PDF
-    * fall back gracefully when Inkscape, `pdfjoin` are missing
 * Develop two nice skins
     * one called "sushi" which is mostly black/white/green
     * one called "chocolate mint" which is brown/light green
