@@ -25,3 +25,45 @@ our sub slides {
 our sub _reset {
     @slide_queue = ();
 }
+
+constant SVG_HEADER = q[<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   width="800"
+   height="600"
+   version="1.1">
+];
+
+constant SVG_FOOTER = "</svg>\n";
+
+module Serializer {
+    our $GEN_DIR = '.sambal-gen';
+
+    our sub write_svg_file($name, Slide $slide) {
+        my $fh = open "$GEN_DIR/$name", :w;
+        $fh.print(svg($slide));
+        $fh.close;
+    }
+
+    sub svg(Slide $slide) {
+        return SVG_HEADER ~ SVG_FOOTER;
+    }
+}
+
+our $PROCESS = True;
+
+END {
+    if $PROCESS {
+        try {
+            mkdir $Serializer::GEN_DIR;
+            CATCH {
+                when X::IO::Mkdir && .os-error ~~ /:i 'file exists'/ {
+                    # ignore this, we want the directory there
+                }
+            }
+        }
+        do for @slide_queue.kv -> $num, $slide {
+            Serializer::write_svg_file("slide{$num.fmt('%04d')}.svg", $slide);
+        } or say "No slides to process. Done.";
+    }
+}
