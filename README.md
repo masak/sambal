@@ -38,7 +38,6 @@ Short term (Oslo hackathon) roadmap:
 Long term roadmap:
 
 * Fix the problem with [https://gist.github.com/2173720](text positioning) once and for all
-* `transition`
 * Layouts
 * Gradual slide buildup
     * Maybe using `<!>` markers in the text
