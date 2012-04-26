@@ -27,7 +27,8 @@ will install both on Debian/Ubuntu.
 
 ## Roadmaps
 
-Short term (Oslo hackathon) roadmap:
+We got a bunch of stuff done at the Oslo hackathon. Here are a few low-hanging
+fruits that remain:
 
 * A bit more of Markdown working
     * block-level code
@@ -42,9 +43,17 @@ Long term roadmap:
 * Gradual slide buildup
     * Maybe using `<!>` markers in the text
     * But we also need a non-text variant of this for Niobium
+    * And for objects in general, really
     * Some slides do buildup, and others are "outside of the flow"
+    * Could have the concept of `save` and `load` inside a `slide {}`
+    * And then `save` and `load` could also take a string name, to
+      save and load multiple things
 * [font awesome](http://fortawesome.github.com/Font-Awesome/) integration
 * The whole [Niobium](https://gist.github.com/1751911) integration
+* At some point, the whole notion of "model" vs "view" needs to be
+  integrated into the Niobium parts.
+* This naturally leads to things like animated slides. Maybe backport
+  `transition` to work using such animations?
 
 There are some interesting design decisions waiting in the area around layouts
 and Niobium integration. Basically, code examples trump abstract discussions,
