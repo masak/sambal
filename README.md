@@ -25,6 +25,11 @@ package manager. For example,
 
 will install both on Debian/Ubuntu.
 
+
+    $ emerge inkscape pdfjam
+
+for Gentoo
+
 ## Roadmaps
 
 We got a bunch of stuff done at the Oslo hackathon. Here are a few low-hanging
