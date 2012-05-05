@@ -15,7 +15,7 @@ Sambal is a small presentation frame work with high ideals.
 This module works standalone, but it won't generate a PDF for you until
 you have the following external programs installed:
 
-* [Inscape](http://inkscape.org/)
+* [Inkscape](http://inkscape.org/)
 * [pdfjoin](http://freecode.com/projects/pdfjam)
 
 You might be able to find either or both of these through your local
