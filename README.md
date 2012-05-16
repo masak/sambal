@@ -43,7 +43,7 @@ fruits that remain:
 
 Long term roadmap:
 
-* Fix the problem with [https://gist.github.com/2173720](text positioning) once and for all
+* Fix the problem with [text positioning](https://gist.github.com/2173720) once and for all
 * Layouts
 * Gradual slide buildup
     * Maybe using `<!>` markers in the text
