@@ -1,7 +1,7 @@
 {
 	"name"		: "Sambal",
 	"version"	: "*",
-	"description"	: "Small presentation frame work.",
+	"description"	: "A presentation that adds a bit of spice.",
 	"depends"	: [ "Text::Markdown" ],
 	"source-url"	: "git://github.com/masak/sambal.git"
 }
