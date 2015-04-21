@@ -37,7 +37,7 @@ fruits that remain:
 
 * A bit more of Markdown working
     * block-level code
-* Develop two nice skins
+* Develop three nice skins
     * one called "sushi" which is mostly black/white/green
     * one called "chocolate mint" which is brown/light green
     * one called "radishes" which is light red/white/light green    
