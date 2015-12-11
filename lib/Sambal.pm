@@ -1,4 +1,4 @@
-module Sambal;
+unit module Sambal;
 
 use Text::Markdown;
 
@@ -16,22 +16,26 @@ my @slide_queue;
 
 sub text(Cool $text) is export {
     my $doc = parse-markdown($text);
-    my @children = $doc.children;
+    my @children = $doc.document.items;
     push @slide_queue, Slide.new(:@children);
 }
 
 sub slide(&block) is export {
     my $prior_length = +@slide_queue;
+    @slide_queue = @slide_queue[^$prior_length];
+    
     die "Can't pass a block that requires parameters to &slide"
         unless &block.arity == 0;
     &block();
+    
     my @children;
     for @slide_queue[$prior_length .. *-1] -> $slide {
         die "Can't have transitions inside slide"
             if $slide ~~ Slide::Transition;
-        push @children, $slide.children[];
+            
+        @children.push: $slide.children;
     }
-    @slide_queue = @slide_queue[^$prior_length], Slide.new(:@children);
+     @slide_queue.push: Slide.new(:@children);
 }
 
 sub transition is export {
@@ -101,6 +105,40 @@ module Serializer {
         eager map { svg($_) }, $slide.children;
     }
 
+    multi svg(Text::Markdown::Paragraph $para) {
+        my $y = 300 - 50 * ($*num_paras - 1) + 100 * $*para_index++;
+        my $style = 'font-size:40px;text-anchor:middle';
+        qq[<text xml:space="preserve" x="400" y="$y" style="$style">],
+        (map { svg($_) }, $para.items),
+        qq[</text>\n];
+    }
+
+    multi svg(Str $text, :$style?) {
+        return
+            q[<tspan],
+            (qq[ style="$style"] if $style),
+            q[>],
+            $text,
+            qq[</tspan>];
+    }
+    
+    multi svg(Text::Markdown::Emphasis $tspan) {
+        my $style = 'font-' ~
+                    ($tspan.level == 1 ?? 'style: italic' !! 'weight: bold') ~
+                    ';';
+        return svg($tspan.text, :$style)
+    }
+    
+    multi svg(Text::Markdown::Code $tspan) {
+        my $style = 'font-family: Andale Mono';
+        return svg($tspan.text, :$style);
+    }
+    
+    multi svg(Text::Markdown::CodeBlock $tspan) {
+        my $style = 'font-family: Andale Mono';
+        return svg($tspan.text, :$style);
+    }
+
     multi svg(Slide::Transition $trans) {
         my $prev_offset = -800 * $trans.progress;
         my $next_offset = 800 * (1 - $trans.progress);
@@ -108,27 +146,6 @@ module Serializer {
         qq[<g transform="translate($prev_offset, 0)">], slide_svg($trans.previous), '</g>',
         qq[<g transform="translate($next_offset, 0)">], slide_svg($trans.next), '</g>',
         SVG_FOOTER
-    }
-
-    multi svg(Text::Markdown::Para $para) {
-        my $y = 300 - 50 * ($*num_paras - 1) + 100 * $*para_index++;
-        my $style = 'font-size:40px;text-anchor:middle';
-        qq[<text xml:space="preserve" x="400" y="$y" style="$style">],
-        (map { svg($_) }, $para.children),
-        qq[</text>\n];
-    }
-
-    multi svg(Text::Markdown::TSpan $_) {
-        my $style = join '; ',
-            (qq[font-style: {.font-style}]   if .font-style),
-            (qq[font-weight: {.font-weight}] if .font-weight),
-            (qq[font-family: Andale Mono]    if .font-family eq 'monospace');
-        return
-            q[<tspan],
-            (qq[ style="$style"] if $style),
-            q[>],
-            .text,
-            qq[</tspan>];
     }
 }
 
