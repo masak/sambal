@@ -22,7 +22,6 @@ sub text(Cool $text) is export {
 
 sub slide(&block) is export {
     my $prior_length = +@slide_queue;
-    @slide_queue = @slide_queue[^$prior_length];
     
     die "Can't pass a block that requires parameters to &slide"
         unless &block.arity == 0;
@@ -33,9 +32,10 @@ sub slide(&block) is export {
         die "Can't have transitions inside slide"
             if $slide ~~ Slide::Transition;
             
-        @children.push: $slide.children;
+        @children.append: $slide.children;
     }
-     @slide_queue.push: Slide.new(:@children);
+    
+    @slide_queue = flat @slide_queue[^$prior_length], Slide.new(:@children);
 }
 
 sub transition is export {
